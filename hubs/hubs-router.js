@@ -40,7 +40,25 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/', (req, res) => {
+const validatePost = (req,res,next) => {
+  if(req.body.name) {
+    next();
+  } else {
+    res.status(400).json({errorMessage: 'Please provide a name for the hub.'})
+  }
+}
+
+const checkRole = (role) => {
+  return (req,res,next) => {
+    if(req.headers.role === role) {
+      next();
+    } else {
+      res.status(403).json({ errorMessage: 'Not authorized.' })
+    }
+  }
+};
+
+router.post('/', checkRole('admin'), validatePost, (req, res) => {
   Hubs.add(req.body)
   .then(hub => {
     res.status(201).json(hub);
